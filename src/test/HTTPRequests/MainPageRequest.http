@@ -1,0 +1,20 @@
+###
+GET http://localhost:8080
+
+###
+GET http://localhost:8080/refuel
+
+###
+POST http://localhost:8080/refuel/addrefuel
+Content-Type: application/json
+
+{
+  "date": "2025-12-02",
+  "amount": -40.5,
+  "price": -13000,
+  "mileage": -157700 
+}
+
+###
+@id = 2
+GET http://localhost:8080/refuel/{{id}}
