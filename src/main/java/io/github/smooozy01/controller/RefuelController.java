@@ -13,16 +13,15 @@ import java.util.List;
 public class RefuelController {
 
     private final RefuelService refuelService;
+    public RefuelController(RefuelService refuelService) { this.refuelService = refuelService; }
 
-    public RefuelController(RefuelService refuelService) {
-        this.refuelService = refuelService;
-    }
-
+    
     @GetMapping
     public List<RefuelDTO> getAllRefuels(){ 
         
         return refuelService.getAllRefuels(); 
     }
+    
     
     @PostMapping("addrefuel")
     public ResponseEntity<String> addRefuel(@RequestBody @Valid RefuelDTO refuelDTO){
@@ -31,8 +30,9 @@ public class RefuelController {
         return ResponseEntity.ok("Saved");
     }
     
+    
     @GetMapping("{id}")
-    public RefuelDTO getRefuelByID(@PathVariable Integer id){
+    public RefuelDTO getRefuelByID(@PathVariable int id){
         
         return refuelService.getRefuelByID(id);
     }

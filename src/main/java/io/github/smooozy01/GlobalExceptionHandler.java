@@ -30,33 +30,33 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
         
+    /// 409
     @ExceptionHandler(AlreadyExistsException.class)
-    public ResponseEntity<String> handleAlreadyExists(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+    public ResponseEntity<Map<String, String>> handleAlreadyExists(RuntimeException ex) {
+        return buildResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
     
+    /// 404
     @ExceptionHandler(DoesntExistException.class)
     public ResponseEntity<String> handleDoesntExist(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    } 
-    
-    @ExceptionHandler(InvalidDateException.class)
-    public ResponseEntity<String> handleInvalidDate(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-    }
-    
-    @ExceptionHandler(InvalidFuelException.class)
-    public ResponseEntity<String> handleInvalidFuel(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
-    @ExceptionHandler(InvalidPriceException.class)
-    public ResponseEntity<String> handleInvalidPrice(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    ///400
+    @ExceptionHandler({
+            InvalidDateException.class,
+            InvalidFuelException.class,
+            InvalidPriceException.class,
+            InvalidMileageException.class
+    })
+    public ResponseEntity<Map<String, String>> handleCustomBadRequests(RuntimeException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
-    @ExceptionHandler(InvalidMileageException.class)
-    public ResponseEntity<String> handleInvalidMileage(RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    private ResponseEntity<Map<String, String>> buildResponse(HttpStatus status, String message) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", message); // Frontend always checks 'error' key
+        return ResponseEntity.status(status).body(body);
     }
+    
 }

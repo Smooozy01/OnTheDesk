@@ -27,7 +27,7 @@ public class RefuelService {
     }
 
     
-    public RefuelDTO getRefuelByID(Integer ID){
+    public RefuelDTO getRefuelByID(int ID){
         
         return refuelRepository.findById(ID)
                 // 1. If found, convert to DTO and return

@@ -10,9 +10,9 @@ Content-Type: application/json
 
 {
   "date": "2025-12-02",
-  "amount": -40.5,
-  "price": -13000,
-  "mileage": -157700 
+  "amount": 40.5,
+  "price": 13000,
+  "mileage": 157700 
 }
 
 ###
