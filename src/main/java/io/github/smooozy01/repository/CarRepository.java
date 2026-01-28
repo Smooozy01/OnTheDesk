@@ -7,5 +7,4 @@ import java.util.List;
 public interface CarRepository extends JpaRepository<Car, Integer> {
 
     List<Car> findByNameContainingIgnoreCase(String name);
-    
 }

@@ -2,11 +2,11 @@
 GET http://localhost:8080/cars
 
 ###
-@id = 1
+@id = 2
 GET http://localhost:8080/cars/{{id}}
 
 ###
-@name = 169
+@name = L
 GET http://localhost:8080/cars?name={{name}}
 
 ###
@@ -14,7 +14,7 @@ POST http://localhost:8080/cars
 Content-Type: application/json
 
 {
-  "name": "169ANL"
+  "name": "288ALP"
 }
 
 ###
@@ -22,9 +22,17 @@ PUT http://localhost:8080/cars/{{id}}
 Content-Type: application/json
 
 {
-  "name": "554ALO"
+  "name": "22"
 }
 
 
 ###
 DELETE http://localhost:8080/cars/1
+
+###
+POST http://localhost:8080/clients
+Content-Type: application/json
+
+{
+  "name": "Ismail"
+}

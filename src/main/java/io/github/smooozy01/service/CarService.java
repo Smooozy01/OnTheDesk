@@ -6,9 +6,15 @@ import io.github.smooozy01.exception.general.DoesntExistException;
 import io.github.smooozy01.model.Car;
 import io.github.smooozy01.repository.CarRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CarService {
@@ -17,12 +23,16 @@ public class CarService {
     public CarService(CarRepository carRepository) {
         this.carRepository = carRepository;
     }
-
-
-    public List<CarDTO> getAllCars(){
+    
+    
+    public List<CarDTO> getCars(String name){
         
-        List<Car> carList = carRepository.findAll();
-        return CarDTO.getDtoListFromModelList(carList);
+        if (name == null || name.isBlank())
+            return CarDTO.getDtoListFromModelList(carRepository.findAll());
+        
+        else 
+            return CarDTO.getDtoListFromModelList(
+                    carRepository.findByNameContainingIgnoreCase(name));
     }
     
     
@@ -34,26 +44,35 @@ public class CarService {
     }
     
     
-    public List<CarDTO> getCarByName(String userInput){
-        return CarDTO.getDtoListFromModelList(
-                carRepository.findByNameContainingIgnoreCase(userInput));
-    }
-    
-    
-    public void updateCarByID(int id, CarDTO carDTO){
+    @Transactional
+    public ResponseEntity<String> updateCarByID(int id, CarDTO carDTO){
         
-        carRepository.save(new Car(id, carDTO.getName()));
+        try {
+            
+            Car car = carRepository.findById(id).orElseThrow(() -> 
+                    new DoesntExistException("No record with such ID"));
+            
+            if (carDTO.getName() != null)
+                car.setName(carDTO.getName());
+            
+            return ResponseEntity.status(HttpStatus.OK).body("Updated");
+            
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new DoesntExistException("No record with such ID");
+        }
+        
     }
     
-    
-    public void addCar(CarDTO carDTO){
+    public ResponseEntity<String> addCar(CarDTO carDTO){
 
-        System.out.println(carDTO.getName());
         if (carDTO.getName() == null || carDTO.getName().replaceAll(" ", "").length() < 5)
             throw new IllegalArgumentException("Car name can't be empty");
         
         try {
+            
             carRepository.save(new Car(carDTO.getName().toUpperCase()));
+            return ResponseEntity.status(HttpStatus.CREATED).body("Saved");
+            
         } catch (DataIntegrityViolationException e){
             throw new AlreadyExistsException("Such car already exists");
         }
@@ -61,9 +80,19 @@ public class CarService {
     }
     
     
-    public void deleteCarByID(int id){
+    public ResponseEntity<String> deleteCarByID(int id){
         
         carRepository.deleteById(id);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Deleted");
     }
+    
+    public boolean doesCarExist(int id){
+        return carRepository.existsById(id);
+    }
+    
+    public Optional<Car> getCarModelById(int id){
+        return carRepository.findById(id);
+    }
+        
     
 }

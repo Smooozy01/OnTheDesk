@@ -1,6 +1,6 @@
 services:
   db:
-    container_name: postgres-spring-boot
+    container_name: postgres
     image: postgres:latest
 
     environment:
@@ -19,10 +19,32 @@ services:
       - db
 
     restart: unless-stopped
+    
+    
+  redis:
+    container_name: redis-spring-boot
+    image: redis:latest
+    
+    command: redis-server --appendonly yes
+    
+    ports:
+      - "6379:6379"
+      
+    volumes:
+      - redis_data:/data
+      
+    networks:
+      - app-network
+      
+    restart: unless-stopped
 
 networks:
   db:
     driver: bridge
+  app-network:
+    driver: bridge
+    
 
 volumes:
   db:
+  redis_data:

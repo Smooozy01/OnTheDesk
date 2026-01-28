@@ -2,11 +2,16 @@ package io.github.smooozy01.dto;
 
 import io.github.smooozy01.model.Car;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter @Setter
 public class CarDTO {
+    
+    private Integer id;
     
     @Size(min = 5, max = 8)
     private String name;
@@ -17,7 +22,7 @@ public class CarDTO {
     }
     
     public static CarDTO getDtoFromModel(Car car){
-        return new CarDTO(car.getName());
+        return new CarDTO(car.getName(), car.getId());
     }
 
     public static List<Car> getModelListFromDtoList(List<CarDTO> carDTOList){
@@ -42,15 +47,9 @@ public class CarDTO {
         return carDTOList;
     }
     
+    
     public CarDTO(){}
     public CarDTO(String name){ this.name = name;}
+    public CarDTO(String name, Integer id){ this.name = name; this.id = id; }
     
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
 }
