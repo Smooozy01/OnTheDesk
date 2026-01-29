@@ -6,6 +6,10 @@ import io.github.smooozy01.model.Car;
 import io.github.smooozy01.model.Client;
 import io.github.smooozy01.repository.ClientRepository;
 import jakarta.validation.Valid;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -26,6 +30,7 @@ public class ClientService {
     }
     
     
+    @Cacheable(value = "client_search", key = "{#clientName, #carName}")
     public List<ClientDTO> searchClient(String clientName, String carName) {
         
         if (clientName == null && carName == null) {
@@ -35,22 +40,23 @@ public class ClientService {
         
         else if (clientName != null && carName == null) {
             return ClientDTO.clientModelListToDTOList(
-                    clientRepository.findByName(clientName));
+                    clientRepository.findByNameContainingIgnoreCase(clientName));
         }
         
         else if (clientName == null && carName != null) {
             return ClientDTO.clientModelListToDTOList(
-                    clientRepository.findByCarName(carName));
+                    clientRepository.findByCarNameContainingIgnoreCase(carName));
         }
         
         else{
             return ClientDTO.clientModelListToDTOList(
-                    clientRepository.findByNameAndCarName(clientName, carName));
+                    clientRepository.findByNameContainingIgnoreCaseAndCarNameContainingIgnoreCase(clientName, carName));
         }
 
     }   
     
     
+    @Cacheable(value = "clients", key = "#id")
     public ClientDTO getClientByID(int id) {
         Optional<Client> client = clientRepository.findById(id);
         
@@ -60,32 +66,31 @@ public class ClientService {
         else 
             return null;
     }
-    
 
-    public ResponseEntity<String> createClient(@Valid ClientDTO clientDTO, Car car) {
 
-        clientRepository.save(
-                new Client(
+    @Caching(
+            put = { @CachePut(value = "clients", key = "#result.id") },
+            evict = { @CacheEvict(value = "client_search", allEntries = true) }
+    )
+    public ClientDTO createClient(@Valid ClientDTO clientDTO, Car car) {
+
+        Client client = new Client(
                 clientDTO.getName(),
-                car, 
-                clientDTO.getActive()
-        ));
+                car,
+                clientDTO.getActive());
         
-//        if (car != null) {
-//            clientRepository.save(
-//                    new Client(clientDTO.getName(), car));
-//        }
-//        else {
-//            clientRepository.save(
-//                    new Client(clientDTO.getName(), null));
-//        }
-//        
-        return ResponseEntity.status(HttpStatus.CREATED).body("Created!");
+        clientRepository.save(client);
+        
+        return ClientDTO.clientDTOFromModel(client);
     }
     
     
     @Transactional
-    public ResponseEntity<String> updateClient(int id, ClientDTO clientDTO) {
+    @Caching(evict = {
+            @CacheEvict(value = "clients", key = "#id"),
+            @CacheEvict(value = "client_search", allEntries = true)
+    })
+    public ClientDTO updateClient(int id, ClientDTO clientDTO) {
 
         try {
             Client client = clientRepository.findById(id).orElseThrow(() -> 
@@ -102,7 +107,7 @@ public class ClientService {
             
             if (clientDTO.getCarId() != null) {
                 
-                Optional<Car> car = carService.getCarModelById(clientDTO.getCarId());
+                Optional<Car> car = carService.getCarModelById(clientDTO.getCarId());  //TODO - Calling service or facade?
                 if (car.isPresent()) {
                     client.setCar(car.get());
                 } 
@@ -112,7 +117,7 @@ public class ClientService {
                 
             }
 
-            return ResponseEntity.status(HttpStatus.OK).body("Updated");
+            return ClientDTO.clientDTOFromModel(client);
 
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new DoesntExistException("No record with such ID");
@@ -121,6 +126,10 @@ public class ClientService {
     }
     
     
+    @Caching(evict = {
+            @CacheEvict(value = "clients", key = "#id"),
+            @CacheEvict(value = "client_search", allEntries = true)
+    })
     public ResponseEntity<String> deleteClient(int id) {
         
         clientRepository.deleteById(id);

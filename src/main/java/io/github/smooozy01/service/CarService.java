@@ -5,6 +5,10 @@ import io.github.smooozy01.exception.general.AlreadyExistsException;
 import io.github.smooozy01.exception.general.DoesntExistException;
 import io.github.smooozy01.model.Car;
 import io.github.smooozy01.repository.CarRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +27,9 @@ public class CarService {
     public CarService(CarRepository carRepository) {
         this.carRepository = carRepository;
     }
-    
-    
+
+
+    @Cacheable(value = "car_search", key = "(#name == null || #name.trim().isEmpty()) ? 'ALL_CARS' : #name")
     public List<CarDTO> getCars(String name){
         
         if (name == null || name.isBlank())
@@ -34,8 +39,9 @@ public class CarService {
             return CarDTO.getDtoListFromModelList(
                     carRepository.findByNameContainingIgnoreCase(name));
     }
-    
-    
+
+
+    @Cacheable(value = "cars", key = "#id")
     public CarDTO getCarByID(int id){
         
         return carRepository.findById(id)
@@ -45,7 +51,11 @@ public class CarService {
     
     
     @Transactional
-    public ResponseEntity<String> updateCarByID(int id, CarDTO carDTO){
+    @Caching(
+            put = { @CachePut(value = "cars", key = "#id") },
+            evict = { @CacheEvict(value = "car_search", allEntries = true) }
+    )
+    public CarDTO updateCarByID(int id, CarDTO carDTO){
         
         try {
             
@@ -55,23 +65,29 @@ public class CarService {
             if (carDTO.getName() != null)
                 car.setName(carDTO.getName());
             
-            return ResponseEntity.status(HttpStatus.OK).body("Updated");
+            return CarDTO.getDtoFromModel(car);
             
         } catch (ObjectOptimisticLockingFailureException e) {
             throw new DoesntExistException("No record with such ID");
         }
         
     }
-    
-    public ResponseEntity<String> addCar(CarDTO carDTO){
+
+    @Caching(
+            put = { @CachePut(value = "cars", key = "#result.id") },
+            evict = { @CacheEvict(value = "car_search", allEntries = true) }
+    )
+    public CarDTO addCar(CarDTO carDTO){
 
         if (carDTO.getName() == null || carDTO.getName().replaceAll(" ", "").length() < 5)
             throw new IllegalArgumentException("Car name can't be empty");
         
         try {
             
-            carRepository.save(new Car(carDTO.getName().toUpperCase()));
-            return ResponseEntity.status(HttpStatus.CREATED).body("Saved");
+            Car car = new Car(carDTO.getName().toUpperCase());
+            System.out.println(carDTO.getName() + "---------------------------");
+            carRepository.save(car);
+            return CarDTO.getDtoFromModel(car);
             
         } catch (DataIntegrityViolationException e){
             throw new AlreadyExistsException("Such car already exists");
@@ -80,6 +96,10 @@ public class CarService {
     }
     
     
+    @Caching(evict = {
+            @CacheEvict(value = "cars", key = "#id"),
+            @CacheEvict(value = "car_search", allEntries = true)
+    })
     public ResponseEntity<String> deleteCarByID(int id){
         
         carRepository.deleteById(id);

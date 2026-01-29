@@ -5,6 +5,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter @Setter
 public class Client {
@@ -19,6 +21,7 @@ public class Client {
     @ManyToOne
     @JoinColumn(name = "car_id", referencedColumnName = "id")
     private Car car;
+
     
     private Boolean active;
     

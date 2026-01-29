@@ -10,7 +10,12 @@ import java.util.List;
 public interface ClientRepository extends JpaRepository<Client, Integer>,
                                           JpaSpecificationExecutor<Client> {
     
-    List<Client> findByName(String name);
-    List<Client> findByCarName(String carName);
-    List<Client> findByNameAndCarName(String name,String carName);
+    // Search by name
+    List<Client> findByNameContainingIgnoreCase(String name);
+    
+    // Search by car name
+    List<Client> findByCarNameContainingIgnoreCase(String carName);
+    
+    // Search by both
+    List<Client> findByNameContainingIgnoreCaseAndCarNameContainingIgnoreCase(String name, String carName);
 }

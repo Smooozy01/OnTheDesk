@@ -30,9 +30,4 @@ Content-Type: application/json
 DELETE http://localhost:8080/cars/1
 
 ###
-POST http://localhost:8080/clients
-Content-Type: application/json
-
-{
-  "name": "Ismail"
-}
+GET http://localhost:8080/clients?clientName=Ismail

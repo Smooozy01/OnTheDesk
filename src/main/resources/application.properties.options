@@ -7,5 +7,9 @@ spring.datasource.password=
 spring.jpa.hibernate.ddl-auto=
 spring.datasource.driver-class-name=
 
+spring.data.redis.host=
+spring.data.redis.port=
+spring.cache.type=redis
+
 spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.show-sql=true

@@ -7,6 +7,7 @@ import io.github.smooozy01.model.Car;
 import io.github.smooozy01.service.CarService;
 import io.github.smooozy01.service.ClientService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
@@ -34,11 +35,15 @@ public class ClientCarFacade {
     }
 
     public ResponseEntity<String> addCar(@Valid CarDTO carDTO) {
-        return carService.addCar(carDTO);
+        
+        carService.addCar(carDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Saved");
     }
 
     public ResponseEntity<String> updateCarByID(int id, @Valid CarDTO carDTO) {
-        return carService.updateCarByID(id, carDTO);
+        
+        carService.updateCarByID(id, carDTO);
+        return ResponseEntity.status(HttpStatus.OK).body("Updated");
     }
 
     public ResponseEntity<String> deleteCarByID(int id) {
@@ -64,19 +69,22 @@ public class ClientCarFacade {
             
             if (car.isPresent()) {
                 
-                return clientService.createClient(clientDTO, car.get());
+                clientService.createClient(clientDTO, car.get());
+                return ResponseEntity.status(HttpStatus.CREATED).body("Created!");
             }
             else {
                 throw new DoesntExistException("car not found");
             }
         }
         
-        return clientService.createClient(clientDTO, null);
+        clientService.createClient(clientDTO, null);
+        return ResponseEntity.status(HttpStatus.CREATED).body("Created!");
     }
 
     public ResponseEntity<String> updateClient(int id, ClientDTO clientDTO) {
         
-        return clientService.updateClient(id, clientDTO);
+        clientService.updateClient(id, clientDTO);
+        return ResponseEntity.status(HttpStatus.OK).body("Updated");
     }
 
     public ResponseEntity<String> deleteClient(int id) {

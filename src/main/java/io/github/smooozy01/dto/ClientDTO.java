@@ -4,13 +4,14 @@ import io.github.smooozy01.model.Client;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ClientDTO {
+public class ClientDTO implements Serializable {
     
     private Integer id;
     
