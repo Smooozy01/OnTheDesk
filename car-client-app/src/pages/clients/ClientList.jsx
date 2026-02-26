@@ -3,49 +3,64 @@ import { Link } from 'react-router-dom';
 import { ClientService, CarService } from '../../api';
 
 const ClientList = () => {
+    // 1. Data State
     const [clients, setClients] = useState([]);
     const [cars, setCars] = useState([]);
 
+    // 2. Search State
     const [nameQuery, setNameQuery] = useState('');
     const [carQuery, setCarQuery] = useState('');
 
-    const fetchData = async (searchClientName, searchCarName) => {
+    // 3. Pagination State
+    const [currentPage, setCurrentPage] = useState(0); // Spring pages are 0-indexed
+    const [totalPages, setTotalPages] = useState(0);
+    const pageSize = 10; // You can adjust this or make it a selectable dropdown
+
+    const fetchData = async (searchClientName, searchCarName, page = 0) => {
         try {
-            // FIX: Convert empty strings ('') to undefined.
-            // Axios will completely skip keys that are undefined,
-            // resulting in a URL like /clients?clientName=SomeName
-            const finalClientName = searchClientName ? searchClientName : undefined;
-            const finalCarName = searchCarName ? searchCarName : undefined;
+            const finalClientName = searchClientName || undefined;
+            const finalCarName = searchCarName || undefined;
 
             const [clientRes, carRes] = await Promise.all([
-                ClientService.getAll(finalClientName, finalCarName),
+                // Passing page and size to the API call
+                ClientService.getAll(finalClientName, finalCarName, page, pageSize),
                 CarService.getAll()
             ]);
-            setClients(clientRes.data);
+
+            // Extracting data from Spring's Page object structure
+            setClients(clientRes.data.content);
+            setTotalPages(clientRes.data.totalPages);
+            setCurrentPage(clientRes.data.number);
+
             setCars(carRes.data);
         } catch (error) {
             console.error("Error fetching data", error);
         }
     };
 
-    useEffect(() => { fetchData(); }, []);
+    // Initial load
+    useEffect(() => {
+        fetchData(nameQuery, carQuery, currentPage);
+    }, [currentPage]); // Re-fetch whenever currentPage changes
 
     const handleSearch = (e) => {
         e.preventDefault();
-        fetchData(nameQuery, carQuery);
+        setCurrentPage(0); // Reset to first page on new search
+        fetchData(nameQuery, carQuery, 0);
     };
 
     const handleClear = () => {
         setNameQuery('');
         setCarQuery('');
-        // Pass undefined explicitly to clear the search
-        fetchData(undefined, undefined);
+        setCurrentPage(0); // Reset to first page
+        fetchData(undefined, undefined, 0);
     };
 
     const deleteClient = async (id) => {
         if (window.confirm('Delete client?')) {
             await ClientService.delete(id);
-            fetchData(nameQuery, carQuery);
+            // Refresh current page after deletion
+            fetchData(nameQuery, carQuery, currentPage);
         }
     };
 
@@ -53,6 +68,15 @@ const ClientList = () => {
         if (client.carName) return client.carName;
         const foundCar = cars.find(c => c.id === client.carId);
         return foundCar ? foundCar.name : 'None';
+    };
+
+    // Pagination Handlers
+    const goToPreviousPage = () => {
+        if (currentPage > 0) setCurrentPage(currentPage - 1);
+    };
+
+    const goToNextPage = () => {
+        if (currentPage < totalPages - 1) setCurrentPage(currentPage + 1);
     };
 
     return (
@@ -88,6 +112,7 @@ const ClientList = () => {
                 <tr>
                     <th>ID</th>
                     <th>Name</th>
+                    <th>Balance</th>
                     <th>Active</th>
                     <th>Car Name</th>
                     <th>Actions</th>
@@ -95,11 +120,15 @@ const ClientList = () => {
                 </thead>
                 <tbody>
                 {clients.length > 0 ? (
-                    clients.map(client => (
+                    // Destructuring the ClientBalanceDTO into client and balance
+                    clients.map(({ client, balance }) => (
                         <tr key={client.id}>
                             <td>{client.id}</td>
                             <td>{client.name}</td>
+                            {/* Accessing balance from the nested BalanceDTO */}
+                            <td>{balance.balance}</td>
                             <td>{client.active ? 'Yes' : 'No'}</td>
+                            {/* Passing the inner client object to getCarName */}
                             <td>{getCarName(client)}</td>
                             <td>
                                 <Link to={`/clients/${client.id}`}>View</Link> |
@@ -110,11 +139,34 @@ const ClientList = () => {
                     ))
                 ) : (
                     <tr>
-                        <td colSpan="5" style={{ textAlign: 'center' }}>No clients found matching criteria.</td>
+                        <td colSpan="6" style={{ textAlign: 'center' }}>No clients found matching criteria.</td>
                     </tr>
                 )}
                 </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+                <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center', gap: '15px', alignItems: 'center' }}>
+                    <button
+                        onClick={goToPreviousPage}
+                        disabled={currentPage === 0}
+                        style={{ cursor: currentPage === 0 ? 'not-allowed' : 'pointer' }}
+                    >
+                        Previous
+                    </button>
+
+                    <span>Page {currentPage + 1} of {totalPages}</span>
+
+                    <button
+                        onClick={goToNextPage}
+                        disabled={currentPage >= totalPages - 1}
+                        style={{ cursor: currentPage >= totalPages - 1 ? 'not-allowed' : 'pointer' }}
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

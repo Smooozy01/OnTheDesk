@@ -23,6 +23,17 @@ public class ClientDTO implements Serializable {
     
     private Boolean active;
     
+    private float balance;
+
+    public ClientDTO(Client client) {
+        this.id = client.getId();
+        this.name = client.getName();
+        this.carId = client.getCar().getId();
+        this.carName = client.getCar().getName();
+        this.active = client.getActive();
+        this.balance = client.getBalance();
+    }
+
     public static ClientDTO clientDTOFromModel(Client client) {
         
         ClientDTO clientDTO = new ClientDTO();
@@ -38,7 +49,7 @@ public class ClientDTO implements Serializable {
         return clientDTO;
     }
     
-    public static List<ClientDTO> clientModelListToDTOList(List<Client> clients) {
+    public static List<ClientDTO> clientDTOListFromModelList(List<Client> clients) {
         
         List<ClientDTO> clientDTOList = new ArrayList<>();
         
@@ -49,6 +60,18 @@ public class ClientDTO implements Serializable {
         return clientDTOList;
     }
 
+    public static List<BalanceDTO> balanceDTOListFromModelList(List<Client> all) {
+        
+        List<BalanceDTO> balanceDTOList = new ArrayList<>();
+        
+        for (Client client : all) {
+            balanceDTOList.add(new BalanceDTO(client.getId(), client.getBalance()));
+        }
+        
+        return balanceDTOList;
+        
+    }
+    
     @Override
     public String toString() {
         return "name: " + name + ", CarId: " + carId + ", active: " + active;

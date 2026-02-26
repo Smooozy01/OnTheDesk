@@ -1,12 +1,16 @@
 package io.github.smooozy01.facade;
 
+import io.github.smooozy01.dto.BalanceDTO;
 import io.github.smooozy01.dto.CarDTO;
+import io.github.smooozy01.dto.ClientBalanceDTO;
 import io.github.smooozy01.dto.ClientDTO;
 import io.github.smooozy01.exception.general.DoesntExistException;
 import io.github.smooozy01.model.Car;
 import io.github.smooozy01.service.CarService;
 import io.github.smooozy01.service.ClientService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -53,12 +57,26 @@ public class ClientCarFacade {
     
     
 
-    public List<ClientDTO> getClients(String clientName, String carName) {
-        return clientService.searchClient(clientName, carName);
+    public Page<ClientBalanceDTO> getClients(String clientName, String carName, Pageable pageable) {
+
+        Page<ClientDTO> clients = clientService.searchClient(clientName, carName, pageable);
+
+        return clients.map(client -> {
+            
+            BalanceDTO balance = clientService.getBalanceById(client.getId());
+
+            return new ClientBalanceDTO(client, balance);
+
+        });
+        
     }
 
-    public ClientDTO getClientByID(int id) {
-        return clientService.getClientByID(id);
+    public ClientBalanceDTO getClientByID(int id) {
+        
+        ClientDTO client = clientService.getClientByID(id);
+        BalanceDTO balance = clientService.getBalanceById(id);
+        
+        return new ClientBalanceDTO(client, balance);
     }
 
     public ResponseEntity<String> createClient(@Valid ClientDTO clientDTO) {

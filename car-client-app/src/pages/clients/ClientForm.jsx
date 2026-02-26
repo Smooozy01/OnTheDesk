@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ClientService, CarService } from '../../api'; // Import CarService
+import { ClientService, CarService } from '../../api';
 
 const ClientForm = () => {
-    const [client, setClient] = useState({ name: '', active: false, carId: '' });
-    const [cars, setCars] = useState([]); // Store list of cars for the dropdown
+    // Initialize balance as empty string to control the input
+    const [client, setClient] = useState({ name: '', active: false, carId: '', balance: '' });
+    const [cars, setCars] = useState([]);
     const { id } = useParams();
     const navigate = useNavigate();
 
     useEffect(() => {
-        // 1. Fetch available cars for the dropdown
         CarService.getAll().then(res => setCars(res.data));
 
-        // 2. If editing, fetch the client data
         if (id) {
             ClientService.getById(id).then(res => setClient(res.data));
         }
@@ -52,9 +51,20 @@ const ClientForm = () => {
                     />
                 </div>
 
+                {/* Added Balance Input */}
+                <div style={{ marginBottom: '10px' }}>
+                    <label>Balance: </label>
+                    <input
+                        type="number"
+                        step="0.01" // Allows decimals
+                        name="balance"
+                        value={client.balance || ''}
+                        onChange={handleChange}
+                    />
+                </div>
+
                 <div style={{ marginBottom: '10px' }}>
                     <label>Car: </label>
-                    {/* Refactored to a Dropdown Select */}
                     <select
                         name="carId"
                         value={client.carId || ''}

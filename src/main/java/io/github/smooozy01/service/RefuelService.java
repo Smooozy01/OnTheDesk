@@ -6,6 +6,9 @@ import io.github.smooozy01.exception.general.InvalidDateException;
 import io.github.smooozy01.exception.refuel.*;
 import io.github.smooozy01.model.RefuelModel;
 import io.github.smooozy01.repository.RefuelRepository;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +23,7 @@ public class RefuelService {
     }
     
     
+    @Cacheable(value = "refuels_all")
     public List<RefuelDTO> getAllRefuels(){
 
         List<RefuelModel> refuelModels = refuelRepository.findAll();
@@ -27,6 +31,7 @@ public class RefuelService {
     }
 
     
+    @Cacheable(value = "refuels", key = "#ID")
     public RefuelDTO getRefuelByID(int ID){
         
         return refuelRepository.findById(ID)
@@ -37,6 +42,9 @@ public class RefuelService {
     }
 
     
+    @Caching(
+            evict = {@CacheEvict(value = "refuels_all", allEntries = true)}
+    )
     public void addRefuel(RefuelDTO refuelDTO) {
         
         Optional<RefuelModel> lastRecord = refuelRepository.findTopByOrderByIdDesc();

@@ -1,6 +1,7 @@
 package io.github.smooozy01.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -21,9 +22,15 @@ public class Client {
     @ManyToOne
     @JoinColumn(name = "car_id", referencedColumnName = "id")
     private Car car;
-
     
     private Boolean active;
+    
+    @OneToMany(mappedBy = "client")
+    private List<Transaction> transactions;
+    
+    @NotNull
+    private Float balance = 0f;
+    
     
     public Client() {}
     public Client(String name) { 

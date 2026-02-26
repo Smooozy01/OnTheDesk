@@ -15,9 +15,18 @@ export const CarService = {
 };
 
 export const ClientService = {
-    getAll: (clientName, carName) => api.get('/clients', { params: { clientName, carName } }),
+    getAll: (clientName, carName, page, size) =>
+        api.get('/clients', { params: { clientName, carName, page, size } }),
     getById: (id) => api.get(`/clients/${id}`),
     create: (client) => api.post('/clients', client),
     update: (id, client) => api.put(`/clients/${id}`, client),
     delete: (id) => api.delete(`/clients/${id}`)
+};
+
+export const TransactionService = {
+    getAll: () => api.get('/transactions'),
+    getById: (id) => api.get(`/transactions/${id}`),
+    create: (transaction) => api.post('/transactions', transaction),
+    update: (id, transaction) => api.put(`/transactions/${id}`, transaction),
+    delete: (id) => api.delete(`/transactions/${id}`)
 };
